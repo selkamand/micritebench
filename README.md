@@ -7,14 +7,14 @@ micritebench is a collection of simulated datasets used for benchmarking tools t
 
 For each commonly pathogenic microbes we generate an *in silico* dilution series by combining reads simulated from human & microbial reference genomes then combining them in different proportions. This produces a series of fastqs whose contents can be identified by their names:
 
-* **genome1**_nreads_**genome2**_nreads_**genome3**_nreads_etc.*R1*_or_*R2*.fastq
+* **genome1**\_nreads\_**genome2**\_nreads\_**genome3**\_nreads\_etc.*R1*\_or\_*R2*.fastq
 
 
 For example, FASTQ files containing 900 reads simulated from the telomere to telomere human reference genome + 100 from an EBV reference genome would look like:
 
-* **humanT2T_900_ebv_100.R1.fastq**
+* **humanT2T**\_900\_**ebv**\_100.R1.fastq**
 
-* **humanT2T_900_ebv_100.R2.fastq**
+* **humanT2T**\_900\_**ebv**\_100.R2.fastq**
 
 ## BAMs
 
