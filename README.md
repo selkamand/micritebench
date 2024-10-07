@@ -12,9 +12,9 @@ For each commonly pathogenic microbes we generate an *in silico* dilution series
 
 For example, FASTQ files containing 900 reads simulated from the telomere to telomere human reference genome + 100 from an EBV reference genome would look like:
 
-* **humanT2T**\_900\_**ebv**\_100.R1.fastq**
+* **humanT2T**\_900\_**ebv**\_100.R1.fastq
 
-* **humanT2T**\_900\_**ebv**\_100.R2.fastq**
+* **humanT2T**\_900\_**ebv**\_100.R2.fastq
 
 ## BAMs
 
