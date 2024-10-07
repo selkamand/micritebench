@@ -1,0 +1,2 @@
+key	command
+bwamem2	bwa-mem2 mem <ref> <in1.fq> [in2.fq]

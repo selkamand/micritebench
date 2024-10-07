@@ -1,0 +1,9 @@
+[package]
+name = "micritebench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bio = "2.0.3"
+rand = "0.8.5"
+which = "6.0.3"
