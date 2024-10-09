@@ -26,6 +26,7 @@ pub fn align(fastq: &FastqPath, refgenome: &str, refgenome_key: &str, outdir: &s
         .arg("mem")
         .arg("-t")
         .arg(threads.to_string())
+        .arg("-M")
         .arg("-o")
         .arg(&outfile_sam)
         .arg(refgenome)
@@ -45,7 +46,7 @@ pub fn align(fastq: &FastqPath, refgenome: &str, refgenome_key: &str, outdir: &s
         eprintln!("Alignment successful")
     }
 
-    // Now we need to sort and
+    // Now we need to sort and convert to bam
     let bampath = sam_to_sorted_bam(&outfile_sam, true);
 
     eprintln!("bampath: {bampath}")
