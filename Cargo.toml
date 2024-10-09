@@ -2,7 +2,14 @@
 name = "micritebench"
 version = "0.1.0"
 edition = "2021"
-
+description = "Create simulated datasets for benchmarking microbial detection toolkits"
+repository = "https://github.com/selkamand/micritebench"
+authors = ["Sam El-Kamand <selkamand@ccia.org.au>"]
+[package.metadata.wix]
+upgrade-guid = "9F91DA54-93CB-4C13-82CC-5796B3C9E622"
+path-guid = "82F2BF79-5B5C-489D-88F2-9998835EDBD5"
+license = false
+eula = false
 [dependencies]
 bio = "2.0.3"
 clap = { version = "4.5.20", features = ["derive"] }
@@ -10,3 +17,29 @@ env_logger = "0.11.5"
 log = "0.4.22"
 rand = "0.8.5"
 which = "6.0.3"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.17.0"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "powershell", "npm", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# The archive format to use for windows builds (defaults .zip)
+windows-archive = ".tar.gz"
+# The archive format to use for non-windows builds (defaults .tar.xz)
+unix-archive = ".tar.gz"
+# A namespace to use when publishing this package to the npm registry
+npm-scope = "@selkamand"
+# Publish jobs to run in CI
+pr-run-mode = "plan"
+# Whether to install an updater program
+install-updater = true
