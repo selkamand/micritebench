@@ -1,5 +1,4 @@
-use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use clap::Parser;
 
 #[derive(Parser)]
 #[command(name = "micritebenchmark")]
