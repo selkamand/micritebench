@@ -1,6 +1,97 @@
 use crate::datastructures::FastqPath;
+use crate::utils::prefix;
+
 use bio::io::fastq;
 use std::{collections::HashSet, fs::File, io, path::Path, usize};
+
+/// Simulates and align multiple combinations of 2 reference genomes to a third 'alignment' genome.
+///
+/// This function uses ART to simulate paired-end reads from two different reference genomes and then combines them together.
+/// Supplying multiple sets of read counts for each reference genome will generate a distinct set of paired-end fastq files for each combination.
+///
+/// Each set of read pairs
+/// # Arguments
+///
+/// * `ref1_path` - Path to the first reference genome file.
+/// * `ref1_key` - Identifier for the first reference genome (used in naming the output files).
+/// * `ref1_reads` - Vector containing the number of reads to generate from the first reference genome for each paired combination.
+/// * `ref2_path` - Path to the second reference genome file.
+/// * `ref2_key` - Identifier for the second reference genome (used in naming the output files).
+/// * `ref2_reads` - Vector containing the number of reads to generate from the second reference genome for each paired combination.
+/// * `workdir` - Directory where intermediate files will be stored (automatically cleaned).
+/// * `outdir` - Directory where the final fastq files will be stored.
+/// * `alignment_refgenome` - Path to reference genome used for alignment
+/// * `refgenome_key` - Identifier for the alignment reference genome (used in naming of output files)
+/// * `threads` - Number of threads to use for alignment & bam sorting
+///
+/// # Returns
+///
+/// A vector of `FastqPath` structs, each representing the paths to the paired fastq files for each combination.
+///
+/// # Panics
+///
+/// The function will panic if `ref1_reads` and `ref2_reads` vectors have different lengths or if Mason is not installed.
+///
+/// # Examples
+///
+/// Generate 3 combinations EBV and HPV genomes containing
+///
+/// 1. 10 EBV reads + 20 HPV reads
+/// 2. 100 EBV reads + 30 HPV reads
+/// 3. 1000 EBV reads + 40 HPV reads
+///
+/// Plus coord-sorted BAMs created by alignment each set of fastqs to the 'metagenome.fna' reference using bwa-mem2
+///
+/// ```
+/// micritebench::simulation::simulate_and_align(
+///     "genomes/ebv.fna",
+///     "ebv",
+///     vec![10, 100, 1000],
+///     "genomes/hpv16.fna",
+///     "hpv16",
+///     vec![20, 30, 40],
+///     "workdir",
+///     "outdir",
+///     "genomes/metagenome.fna",
+///     "metagenome",
+///     2
+/// );
+/// ```
+/// ///
+///
+/// Combines simulated reads from reference genome `ref1_path` (n=`ref1_reads`) with
+/// those from `ref2_path` (n=`ref2_reads`) to create a spliced fastq file with a filename that encodes
+/// its origin (genomes are indicated from `key` arguments).
+///
+/// The paired fastq files are then aligned to `alignment_refgenome` with bwa-mem2 and coordinate sorted
+/// using samtools.
+///  
+///
+#[allow(clippy::too_many_arguments)]
+pub fn simulate_and_align(
+    ref1_path: &str,
+    ref1_key: &str,
+    ref1_reads: Vec<u32>,
+    ref2_path: &str,
+    ref2_key: &str,
+    ref2_reads: Vec<u32>,
+    workdir: &str,
+    outdir: &str,
+    alignment_refgenome: &str,
+    refgenome_key: &str,
+    threads: u8,
+) {
+    //simulate multiple fastqs
+
+    //align all of them
+    let fastqs = crate::simulation::simulate_spliced_many(
+        ref1_path, ref1_key, ref1_reads, ref2_path, ref2_key, ref2_reads, workdir, outdir,
+    );
+
+    for fastq in fastqs {
+        crate::alignment::align(&fastq, alignment_refgenome, refgenome_key, outdir, threads)
+    }
+}
 
 /// Simulates multiple combinations of 2 reference genomes.
 ///
@@ -76,7 +167,7 @@ pub fn simulate_spliced_many(
         let (nreads_ref1, nreads_ref2) = it;
 
         eprintln!(
-            "Simulationg a paired-end fastq ({} reads from {} + {} reads from {})",
+            "Simulating a paired-end fastq ({} reads from {} + {} reads from {})",
             nreads_ref1, ref1_key, nreads_ref2, ref2_key,
         );
 
@@ -127,9 +218,7 @@ pub fn simulate_spliced(
     let spliced_fastqs = cat_fastqs(ref1_fastqs, ref2_fastqs, workdir);
 
     // Move files from workdir to outdir
-    mv_file_to_dir(std::path::Path::new(&spliced_fastqs.r1), outdir)
-        .expect("Failed to move spliced fastq to output directory");
-    mv_file_to_dir(std::path::Path::new(&spliced_fastqs.r2), outdir)
+    let moved_spliced_fastq = mv_fastq_to_dir(spliced_fastqs, outdir)
         .expect("Failed to move spliced fastq to output directory");
 
     // Rest of this function is just cleanup (deleting unused directories)
@@ -139,17 +228,28 @@ pub fn simulate_spliced(
         std::fs::remove_file(file.path()).expect("Failed to delete file");
     }
 
-    spliced_fastqs
+    moved_spliced_fastq
+}
+
+fn mv_fastq_to_dir(fastq: FastqPath, dirpath: &str) -> Result<FastqPath, std::io::Error> {
+    let r1_newpath = mv_file_to_dir(std::path::Path::new(&fastq.r1), dirpath)?;
+    let r2_newpath = mv_file_to_dir(std::path::Path::new(&fastq.r2), dirpath)?;
+
+    Ok(FastqPath {
+        r1: r1_newpath,
+        r2: r2_newpath,
+    })
 }
 
 /// Move a file to a new directory
-///
-fn mv_file_to_dir(filepath: &Path, dirpath: &str) -> Result<(), std::io::Error> {
+fn mv_file_to_dir(filepath: &Path, dirpath: &str) -> Result<String, std::io::Error> {
     std::fs::create_dir_all(dirpath).expect("failed to create output directory");
     let filename = filepath.file_name().unwrap_or_default();
     let newfilename = format!("{}/{}", dirpath, filename.to_string_lossy());
 
-    std::fs::rename(filepath, newfilename)
+    std::fs::rename(filepath, &newfilename)?;
+
+    Ok(newfilename)
 }
 
 /// Concatenates fastq files
@@ -240,7 +340,6 @@ pub fn simulate(ref_path: &str, ref_key: &str, reads: u32, workdir: &str) -> Fas
         panic!("Failed to find art_illumina binary. Please ensure ART is installed and added to path. Error: {err}")
     }
     );
-    eprintln!("Found ART Path: {:#?}", art_path);
 
     // Run ART simulation
     eprintln!("Running ART read simulation");
@@ -264,7 +363,7 @@ pub fn simulate(ref_path: &str, ref_key: &str, reads: u32, workdir: &str) -> Fas
         .arg(&outfile_prefix_pre_subsample)
         .output()
         .unwrap_or_else(|err| {
-            panic!("Mason simulation failed for reference {ref_key}. Error: {err}")
+            panic!("ART simulation failed for reference {ref_key}. Error: {err}")
         });
 
     // Since if 'reads' = 100 ART will produce 100 reads per contig, we then need to subsample down
@@ -321,19 +420,4 @@ fn subsample_fastq(path_in: &str, path_out: &str, n_reads: u32) {
                 .expect("Error writing subsampled fastq read");
         }
     }
-}
-
-fn prefix(path: &str) -> String {
-    let mypath = std::path::Path::new(&path);
-    let filename = match mypath.file_name() {
-        Some(val) => val,
-        None => panic!("Failed to get file prefix"),
-    };
-
-    filename
-        .to_string_lossy()
-        .split('.')
-        .next()
-        .unwrap_or("")
-        .to_string()
 }

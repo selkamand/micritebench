@@ -1,19 +1,5 @@
 fn main() {
-    // micritebench::simulate("genomes/test.fna", "test", 100, "workdir");
-    // let spliced_fastqs = micritebench::simulation::simulate_spliced(
-    //     "genomes/ebv.fna",
-    //     "ebv",
-    //     100,
-    //     "genomes/hpv16.fna",
-    //     "hpv16",
-    //     10,
-    //     "workdir",
-    //     true,
-    // );
-
-    // eprintln!("{:#?}", spliced_fastqs);
-
-    let spliced_fastqs = micritebench::simulation::simulate_spliced_many(
+    micritebench::simulation::simulate_and_align(
         "genomes/ebv.fna",
         "ebv",
         vec![10, 100, 1000],
@@ -22,7 +8,8 @@ fn main() {
         vec![20, 30, 40],
         "workdir",
         "outdir",
+        "genomes/test.fna",
+        "test",
+        2,
     );
-
-    eprintln!("{:#?}", spliced_fastqs)
 }

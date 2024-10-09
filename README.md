@@ -41,4 +41,4 @@ art_illumina --noALN -i reference.fa --paired -l 150 --rcount 100 -m 400 -s 10 -
 
 This repo includes a rust CLI tool that automates the read simulation, downsampling, inter-species splicing, and alignment.
 
-To function correctly it requires ART and bwa-mem2 to be installed and available on PATH.
+To function correctly it requires ART, bwa-mem2 & samtools to be installed and available on PATH.
