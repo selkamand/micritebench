@@ -35,10 +35,32 @@ Full descriptions of all [reference genomes](genomes.csv) and [alignment strateg
 
 Art for read simulation. Due to ease of installation accross many operating systems. All simulations produce paired-reads. Because ART simulates reads per contig we also add a downsampling step to get the exact number of reads we're after.
 
-```
-art_illumina --noALN -i reference.fa --paired -l 150 --rcount 100 -m 400 -s 10 -o paired_dat
-```
-
 This repo includes a rust CLI tool that automates the read simulation, downsampling, inter-species splicing, and alignment.
 
 To function correctly it requires ART, bwa-mem2 & samtools to be installed and available on PATH.
+
+## CLI example
+
+Goal: Generate 3 combinations EBV and HPV genomes containing
+
+1. 10 EBV reads + 20 HPV reads
+2. 100 EBV reads + 30 HPV reads
+3. 1000 EBV reads + 40 HPV reads
+
+Plus coord-sorted BAMs created by alignment each set of fastqs to the 'metagenome.fna' reference (contains both an EBV and HPV reference genome) using bwa-mem2.
+
+You can run this 
+```
+micritebenchmark \
+    --ref1 genomes/ebv.fna \
+    --ref1-key ebv \
+    --ref1-reads 10,100,1000 \
+    --ref2 genomes/hpv16.fna \
+    --ref2-key hpv16 \
+    --ref2-reads 20,30,40 \
+    --alignment-genome genomes/metagenome.fna \
+    --alignment-key metagenome \
+    --threads 2 \
+    --outdir outdir
+
+```
