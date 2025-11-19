@@ -341,6 +341,7 @@ pub fn simulate(ref_path: &str, ref_key: &str, reads: u32, workdir: &str) -> Fas
     }
     );
 
+    let presubsample_reads: u32 = reads * 2;
     // Run ART simulation
     eprintln!("Running ART read simulation");
     std::process::Command::new(art_path)
@@ -352,7 +353,7 @@ pub fn simulate(ref_path: &str, ref_key: &str, reads: u32, workdir: &str) -> Fas
         .arg("--id")
         .arg(ref_key)
         .arg("--rcount")
-        .arg(reads.to_string())
+        .arg(presubsample_reads.to_string())
         .arg("--mflen")
         .arg("400")
         .arg("--sdev")
