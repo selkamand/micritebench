@@ -39,6 +39,16 @@ This repo includes a rust CLI tool that automates the read simulation, downsampl
 
 To function correctly it requires ART, bwa-mem2 & samtools to be installed and available on PATH.
 
+
+## Installing the tool
+
+Install the dev version of micritebench by running
+
+```
+cargo install --git https://github.com/selkamand/micritebench
+```
+
+
 ## CLI example
 
 Goal: Generate 3 combinations EBV and HPV genomes containing
@@ -49,7 +59,8 @@ Goal: Generate 3 combinations EBV and HPV genomes containing
 
 Plus coord-sorted BAMs created by alignment each set of fastqs to the 'metagenome.fna' reference (contains both an EBV and HPV reference genome) using bwa-mem2.
 
-You can run this 
+After installing micrite, you can run micritebenchark:
+
 ```
 micritebenchmark \
     --ref1 genomes/ebv.fna \
